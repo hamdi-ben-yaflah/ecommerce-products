@@ -26,5 +26,5 @@ jobs:
         run: |
           ssh -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << EOF
             docker load < ~/image.tar.gz
-            docker run -d -p 80:80 ecommerce-products:latest
+            docker run -d -p 3000:80 ecommerce-products:latest
           EOF
