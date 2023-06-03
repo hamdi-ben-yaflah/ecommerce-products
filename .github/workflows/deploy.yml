@@ -17,12 +17,6 @@ jobs:
         run: |
           docker build -t ecommerce-products .
 
-      - name: Install AWS CLI
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
-
       - name: Copy Docker Image to EC2
         run: |
           docker save ecommerce-products:latest | gzip > image.tar.gz
