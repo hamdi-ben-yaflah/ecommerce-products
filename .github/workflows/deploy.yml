@@ -20,11 +20,11 @@ jobs:
       - name: Copy Docker Image to EC2
         run: |
           docker save ecommerce-products:latest | gzip > image.tar.gz
-          scp -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no image.tar.gz ubuntu@${{ secrets.EC2_IP }}:~/image.tar.gz
+          scp -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no image.tar.gz ec2-user@${{ secrets.EC2_IP }}:~/image.tar.gz
 
       - name: Load and Run Docker Image on EC2
         run: |
-          ssh -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << EOF
+          ssh -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_IP }} << EOF
             docker load < ~/image.tar.gz
             docker run -d -p 3000:80 ecommerce-products:latest
           EOF
