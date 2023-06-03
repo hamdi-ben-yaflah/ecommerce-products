@@ -1,0 +1,36 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t ecommerce-products .
+
+      - name: Install AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+      - name: Copy Docker Image to EC2
+        run: |
+          docker save ecommerce-products:latest | gzip > image.tar.gz
+          scp -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no image.tar.gz ubuntu@${{ secrets.EC2_IP }}:~/image.tar.gz
+
+      - name: Load and Run Docker Image on EC2
+        run: |
+          ssh -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << EOF
+            docker load < ~/image.tar.gz
+            docker run -d -p 80:80 ecommerce-products:latest
+          EOF
