@@ -1,5 +1,9 @@
 name: Deploy to EC2
 
+env:
+  SSH_KEY: ${{ secrets.SSH_KEY }}
+  EC2_IP: ${{ secrets.EC2_IP }}
+
 on:
   push:
     branches:
@@ -15,16 +19,22 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ecommerce-products .
+          docker build -t ecommerce-products-service .
 
       - name: Copy Docker Image to EC2
         run: |
-          docker save ecommerce-products:latest | gzip > image.tar.gz
-          scp -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no image.tar.gz ec2-user@${{ secrets.EC2_IP }}:~/image.tar.gz
+          echo "$SSH_KEY" > id_rsa
+          chmod 600 id_rsa
+          docker save ecommerce-products-service:latest | gzip > ecommerce-products-image.tar.gz
+          scp -i id_rsa -o StrictHostKeyChecking=no ecommerce-products-image.tar.gz ec2-user@$EC2_IP:~/ecommerce-products-image.tar.gz
+          rm id_rsa
 
       - name: Load and Run Docker Image on EC2
         run: |
-          ssh -i ${{ secrets.SSH_KEY }} -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_IP }} << EOF
-            docker load < ~/image.tar.gz
-            docker run -d -p 3000:80 ecommerce-products:latest
+          echo "$SSH_KEY" > id_rsa
+          chmod 600 id_rsa
+          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP << EOF
+            docker load < ~/ecommerce-products-image.tar.gz
+            docker run -d -p 3000:3000 ecommerce-products-service:latest
           EOF
+          rm id_rsa
