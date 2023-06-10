@@ -35,6 +35,9 @@ jobs:
           chmod 600 id_rsa
           ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP << EOF
             docker load < ~/ecommerce-products-image.tar.gz
-            docker run -d -p 3000:3000 ecommerce-products-service:latest
+            docker stop ecommerce-products-service || true
+            docker rm ecommerce-products-service || true
+            docker run -d --name ecommerce-products-service -p 3000:3000 ecommerce-products-service:latest
+            docker image prune -f            
           EOF
           rm id_rsa
